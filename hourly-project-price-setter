@@ -1,0 +1,18 @@
+
+class HourlyShift(models.Model):     
+    ..................
+    clock_in = models.DateTimeField(auto_now=False, auto_now_add=False)
+    clock_out = models.DateTimeField(auto_now=False, auto_now_add=False)
+    details = models.TextField(null=True)
+    rate = models.DecimalField(decimal_places=2, max_digits=10, default=0, null=True, blank=True)          
+
+    def save(self, *args, **kwargs):   
+        
+        if self.rate > 0: #Check whether we already have an hour rate greater than the default zero. This is done to prevent an update of price when the shift has been edited. New shifts will not pass this because they will have a zero. If there is a rate, we chose to keep it in the code below
+            self.rate = self.rate 
+        else:
+            try:
+                recentprice = ShiftPriceSetter.objects.get(worker=self.worker, project=self.project, business=self.business, current='Yes Using')
+                self.rate = recentprice.price
+            except ShiftPriceSetting.DoesNotExist:
+                recentprice = self.rate 
